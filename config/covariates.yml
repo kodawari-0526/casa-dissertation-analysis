@@ -1,0 +1,29 @@
+# Each optional input is downloaded from the provider named in DATA_SOURCES.md.
+# Missing inputs are reported and skipped; restricted raw street-light files stay local.
+inputs:
+  streetlights:
+    HACKNEY: data/restricted/streetlights/hackney
+    SOUTHWARK: data/restricted/streetlights/southwark
+    RICHMOND_UPON_THAMES: data/restricted/streetlights/richmond
+  lsoa_boundaries: data/raw/lsoa/lsoa_2021.gpkg
+  imd: data/raw/imd/imd.csv
+  census: data/raw/census/census.csv
+  ptal: data/raw/ptal/ptal.gpkg
+  bus_stops: data/raw/tfl/bus_stops.gpkg
+  bus_routes: data/raw/tfl/bus_routes.gpkg
+  high_streets: data/raw/gla/high_streets.gpkg
+  town_centres: data/raw/gla/town_centres.gpkg
+  buildings: data/raw/os_open_data/buildings.gpkg
+  roads: data/raw/os_open_data/roads.gpkg
+  greenspace: data/raw/os_open_data/greenspace.gpkg
+  greenspace_access: data/raw/os_open_data/greenspace_access.gpkg
+  functional_sites: data/raw/os_open_data/functional_sites.gpkg
+  dft_traffic: data/raw/dft/traffic_counts.gpkg
+
+join_fields:
+  lsoa_code: lsoa21cd
+  imd_code: lsoa21cd
+  census_code: lsoa21cd
+
+streetlights:
+  maximum_match_distance_m: 15

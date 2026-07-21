@@ -1,0 +1,16 @@
+Audit this single street-view image using visible evidence only. Return one JSON object matching the supplied schema.
+
+General rules
+- Do not infer the street name, borough, deprivation, regulatory compliance, design standard, hidden condition or night-time performance.
+- Use applicable=false, score=null and a short na_reason when the relevant location is outside the frame, hidden, too blurred, too distant or otherwise not judgeable.
+- Use score 0 only when the target is visible and judgeable but the feature or usable condition is absent.
+- Uncertainty lowers confidence; it does not lower the observed score.
+- Keep evidence short and describe only what is visible.
+
+Targets
+1. sidewalk_serviceability_coarse: 2 means the visible public footway appears continuous, usable and without material persistent obstruction or damage; 1 means a usable footway is visible but has a clear local constraint, narrowing, persistent obstruction or surface defect; 0 means the visible pedestrian route is absent or materially unusable. Do not count carriageway defects, moving vehicles or pedestrians as footway damage or persistent obstruction.
+2. visible_drainage_feature_presence: 1 means a recognisable kerbside gully, grate, inlet, channel or drainage feature is visible; 0 means the drainage-relevant kerb or gutter area is clearly visible and no such feature is present. A generic road-centre manhole is not kerb drainage. Do not infer hydraulic performance.
+3. kerb_ramp_or_flush_transition_presence: 1 means a public pedestrian crossing context or side-road transition visibly has a dropped kerb, flush transition or ramp-like transition; 0 means that context is clearly visible and lacks one. Do not treat private driveways, garage aprons or vehicle crossovers as pedestrian kerb ramps. Do not infer slope or geometric compliance.
+4. tactile_paving_presence: 1 means a recognisable blister or corduroy tactile surface is visible at a pedestrian transition; 0 means the expected transition location is clearly visible and tactile paving is absent. Ordinary paving patterns, bricks and road markings are not tactile paving.
+
+Set image_id exactly to: {image_id}

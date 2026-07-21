@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "image_id",
+    "sidewalk_serviceability_coarse",
+    "visible_drainage_feature_presence",
+    "kerb_ramp_or_flush_transition_presence",
+    "tactile_paving_presence"
+  ],
+  "properties": {
+    "image_id": {"type": "string"},
+    "sidewalk_serviceability_coarse": {"$ref": "#/$defs/sidewalk"},
+    "visible_drainage_feature_presence": {"$ref": "#/$defs/binary"},
+    "kerb_ramp_or_flush_transition_presence": {"$ref": "#/$defs/binary"},
+    "tactile_paving_presence": {"$ref": "#/$defs/binary"}
+  },
+  "$defs": {
+    "sidewalk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicable", "score", "confidence", "evidence", "na_reason"],
+      "properties": {
+        "applicable": {"type": "boolean"},
+        "score": {"type": ["integer", "null"], "enum": [0, 1, 2, null]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "evidence": {"type": "string", "maxLength": 300},
+        "na_reason": {"type": ["string", "null"], "maxLength": 160}
+      }
+    },
+    "binary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["applicable", "score", "confidence", "evidence", "na_reason"],
+      "properties": {
+        "applicable": {"type": "boolean"},
+        "score": {"type": ["integer", "null"], "enum": [0, 1, null]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "evidence": {"type": "string", "maxLength": 300},
+        "na_reason": {"type": ["string", "null"], "maxLength": 160}
+      }
+    }
+  }
+}

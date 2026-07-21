@@ -1,0 +1,94 @@
+project:
+  crs: EPSG:27700
+  borough_field: borough
+  boroughs:
+    - HACKNEY
+    - SOUTHWARK
+    - RICHMOND_UPON_THAMES
+
+paths:
+  borough_boundaries: data/raw/boundaries/boroughs.gpkg
+  segments: data/interim/01_network/segments.gpkg
+  sample_points: data/interim/02_sampling/sample_points.gpkg
+  view_manifest: data/interim/02_sampling/views.csv
+  streetview_metadata: data/restricted/03_streetview/metadata.csv
+  streetview_requests: data/restricted/03_streetview/request_manifest.csv
+  private_image_manifest: data/restricted/03_streetview/private_images.csv
+  audit_jsonl: data/restricted/04_vlm_audit/audits.jsonl
+  image_scores: data/interim/05_scoring/image_scores.csv
+  point_scores: data/interim/05_scoring/point_scores.csv
+  segment_scores: data/processed/segment_scores.csv
+  streetlight_metrics: data/interim/06_covariates/streetlight_metrics.csv
+  covariate_specs: config/covariates.yml
+  analysis_segments: data/processed/segment_open_covariates.gpkg
+  analysis_output: outputs/analysis
+  figures_output: outputs/figures_tables
+
+network:
+  query_buffer_m: 100
+  minimum_length_m: 5
+  short_segment_threshold_m: 30
+  expected_segments: 6228
+  expected_by_borough:
+    HACKNEY: 1601
+    SOUTHWARK: 2603
+    RICHMOND_UPON_THAMES: 2024
+  strict_count: false
+
+sampling:
+  spacing_m: 50
+  expected_points: 22565
+  expected_views: 90260
+  strict_count: false
+
+streetview:
+  api_key_env: GOOGLE_MAPS_API_KEY
+  radius_m: 50
+  source: outdoor
+  size: 640x640
+  fov: 90
+  pitch: 0
+  retries: 5
+
+vlm_audit:
+  api_key_env: GEMINI_API_KEY
+  model: gemini-2.5-flash
+  retries: 5
+
+scoring:
+  visual_weights:
+    sidewalk_serviceability_coarse: 0.50
+    visible_drainage_feature_presence: 0.25
+    kerb_ramp_or_flush_transition_presence: 0.125
+    tactile_paving_presence: 0.125
+  final_visual_weight: 0.80
+  final_streetlight_weight: 0.20
+  open_visual_weight: 0.70
+  open_streetlight_weight: 0.30
+
+analysis:
+  outcome: PSSI_s
+  knn: 8
+  permutations: 999
+  random_seed: 20260704
+  low_score_threshold: 60
+  selected_segment_predictors:
+    - log_segment_length_m
+    - log_evidence_mass_per_100m
+    - valid_image_rate
+    - income_score_rate
+    - large_building_share_50m
+    - os_openroads_major_road_exposure_50m
+    - green_space_share_100m
+    - os_openroads_b_road_exposure_50m
+    - ptal_nearest_score
+    - distance_to_high_street
+  selected_lsoa_predictors:
+    - log_segment_length_m
+    - log_evidence_mass_per_100m
+    - valid_image_rate
+    - income_score_rate
+    - ptal_nearest_score
+    - distance_to_high_street
+    - transport_site_share_100m
+    - distance_to_nearest_bus_stop_v2
