@@ -1,33 +1,27 @@
-# What is and is not included
+# Repository boundary
 
-The repository is intended to make the analysis reproducible without republishing material that belongs to another provider.
+I am making the method and my own code open, but not every file that passed through the dissertation workflow. Some inputs belong to third-party providers, and some are unnecessary for understanding the analysis.
 
 ## Included
 
-- Analysis and data-processing code.
-- Environment and package information needed to rerun the analysis.
-- Source links and download instructions for public data.
-- The street-segment framework and segment-level analysis data, with OpenStreetMap attribution.
-- Prompts and output-field definitions used for the image audit.
-- Aggregated results, tables and figures used in the dissertation.
+- Python code for data preparation, scoring, spatial analysis and figures.
+- The visual-audit prompt, JSON schema and model identifier.
+- Configuration examples, expected record counts and tests for the core formulas.
+- Direct links to the public data sources.
+- Documentation of the segment-level outputs that can be produced locally.
 
-The segment framework is based on a cleaned street network with sample points placed at roughly 50 m intervals. It does not contain the Google Street View image files.
+## Left out
 
-## Not included
+- Google Street View images, crops, thumbnails and caches.
+- API keys, signed URLs, private storage paths and service request logs.
+- Raw borough lamp coordinates and council asset identifiers.
+- Local copies of OSM, OS OpenData, TfL, GLA, ONS, Nomis and DfT downloads.
+- Intermediate files, editable dissertation drafts and private working notes.
 
-- Google Street View images, crops, thumbnails or caches.
-- API keys, private cloud-storage details, request logs or signed URLs.
-- Raw borough street-light files, individual lamp coordinates or council asset identifiers.
-- Copies of raw third-party datasets that can be downloaded from their official source.
-- Editable dissertation files, private working notes or local data packages.
+These omissions are deliberate. They keep the repository within the providers' terms and avoid turning a dissertation code repository into a duplicate data archive.
 
-## Reproducing the data preparation
+## If somebody wants to rebuild it
 
-1. Build the street network from OpenStreetMap with OSMnx and retain the required attribution.
-2. Create sample points along the cleaned segments at roughly 50 m intervals.
-3. Obtain street-view images directly from the provider under the provider's terms. Do not redistribute the images.
-4. Run the documented image-audit prompt with `gemini-2.5-flash` and aggregate the responses to street segments.
-5. Download each borough's street-light file from its public request page and join the lamp locations to the corresponding street segments.
-6. Download the remaining demographic, transport and built-environment data from the links in [DATA_SOURCES.md](DATA_SOURCES.md).
+The public datasets can be downloaded from [DATA_SOURCES.md](DATA_SOURCES.md). The three street-light files must be obtained from their WhatDoTheyKnow request pages and kept locally. A new Street View collection must be made under the collector's own account and the applicable Google terms; the resulting images must not be added to this repository.
 
-Third-party datasets keep their original licences. The repository's MIT licence covers only the original code and documentation.
+The cleaned segment framework may be released with proper OpenStreetMap attribution. Third-party inputs remain under their original licences, while the MIT licence applies only to my code and documentation.

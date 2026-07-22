@@ -1,47 +1,44 @@
-# Reproducibility guide
+# Reproducing the workflow
 
-## Production reference counts
+This file records the inputs and stage boundaries I used for the dissertation. It is intended to make the method understandable and reusable; it is not a promise that a new live-data run will recreate the exact 2026 dataset.
 
-The dissertation analysis used 6,228 cleaned street segments, 22,565 sample points and 90,260 directional image rows. Of those image rows, 89,756 contributed a valid visual score. The network is divided into 1,601 Hackney, 2,603 Southwark and 2,024 Richmond upon Thames segments.
+## Reference run
 
-The Street View collection was made in May 2026. The visual audit used `gemini-2.5-flash` through the Gemini API. Images are supplied to the model from private storage and are never written to public outputs.
+The completed analysis used:
 
-## Local inputs
+- 6,228 cleaned street segments: 1,601 in Hackney, 2,603 in Southwark and 2,024 in Richmond upon Thames;
+- 22,565 sample points and four requested directions per point;
+- 90,260 directional image records, of which 89,756 contributed a valid visual score;
+- Street View imagery collected in May 2026;
+- `gemini-2.5-flash` through the Gemini API for the visual audit.
 
-`config/pipeline.yml` defines the pipeline paths. `config/covariates.yml` defines the downloadable covariate inputs. Before a full run, provide:
+The Street View collection and audit involved paid services. I have therefore documented the requests, prompt, schema, retry logic and aggregation code without republishing the images or suggesting that a reader must pay to repeat the collection.
 
-- a three-borough boundary layer with a `borough` field;
-- the public neighbourhood, deprivation, Census, transport, road, building and greenspace files listed in `DATA_SOURCES.md`;
-- the three council street-light deliveries under `data/restricted/streetlights/`;
-- a private image manifest with `view_id` and `image_path` after the licensed image collection has been completed.
+## Inputs kept outside Git
 
-The two credentials are read only from the `GOOGLE_MAPS_API_KEY` and `GEMINI_API_KEY` environment variables. Neither variable is written to disk by the pipeline. `.env`, credentials, raw street-light data and Street View imagery are ignored by Git.
+Before a complete rerun, the paths in `config/pipeline.yml` and `config/covariates.yml` need to point to locally downloaded data. The main local-only inputs are the borough boundary layer, the three council street-light deliveries and a private manifest containing `view_id` and `image_path`.
 
-## Stage contracts
+The Street View and Gemini credentials are read from `GOOGLE_MAPS_API_KEY` and `GEMINI_API_KEY`. They are not written to an output file. Raw lamp records, image files, `.env` files and credentials are ignored by Git.
 
-| Stage | Main input | Main output |
-|---|---|---|
-| 01 | Borough boundaries | Cleaned segment GeoPackage and QA counts |
-| 02 | Cleaned segments | Sample-point GeoPackage and four-view CSV |
-| 03 | Four-view CSV | Panorama metadata and key-free parameters |
-| 04 | Private image manifest | Schema-validated audit JSONL |
-| 05 | Audit JSONL and view CSV | Image, point and segment visual scores |
-| 06 | Segments, scores and downloaded covariates | Analysis-ready segment GeoPackage and CSV |
-| 07 | Analysis-ready segments | Descriptive, spatial and model tables |
-| 08 | Stage 07 outputs | Manuscript figures, CSV tables and workbook |
+## What each stage leaves behind
 
-The runner stops on a failed stage. Network and sampling stages write QA JSON files and can enforce the production counts with `--strict-count` when a fixed input snapshot is available.
+| Stage | Output used by the next stage |
+|---|---|
+| 01 | cleaned segment GeoPackage and network QA counts |
+| 02 | sample-point GeoPackage and four-view CSV |
+| 03 | panorama metadata and a request manifest without an API key |
+| 04 | schema-checked audit JSONL |
+| 05 | image, point and segment visual scores |
+| 06 | analysis-ready segment GeoPackage and CSV |
+| 07 | descriptive, spatial and model tables |
+| 08 | manuscript maps, CSV tables and a workbook |
 
-## Score definitions
+The network and sampling scripts have an optional `--strict-count` flag. I used the reference counts as a check, but left strict mode off by default because OSM is a live source.
 
-`EVIS_s` combines sidewalk, drainage, kerb-transition and tactile-paving evidence using weights 0.50, 0.25, 0.125 and 0.125. Non-auditable targets are removed from the valid-target denominator; confidence contributes to evidence mass.
+## Main score definitions
 
-`SL_s` averages the within-borough percentile of lamp density and the inverse percentile of maximum along-segment gap. Segments with no linked lamps receive zero. It is an asset-provision and spacing-continuity proxy, not a measure of illuminance or operational condition.
+`EVIS_s` combines sidewalk, drainage, kerb-transition and tactile-paving evidence with weights 0.50, 0.25, 0.125 and 0.125. A target marked NA is removed from that image's denominator; confidence is carried separately as evidence mass.
 
-The primary final score is:
+`SL_s` is the mean of the within-borough lamp-density percentile and inverse maximum-gap percentile. A segment with no linked lamp receives zero. This is an asset and spacing proxy, not a measurement of illumination or whether a lamp was working.
 
-```text
-PSSI_s = 0.80 × EVIS_s + 0.20 × SL_s
-```
-
-Alternative visual and lighting weights are saved as sensitivity outputs. All statistical results are associations and screening evidence; they are not causal estimates.
+The dissertation's primary score is `PSSI_s = 0.80 × EVIS_s + 0.20 × SL_s`. The other score variants are sensitivity checks, not alternative headline results.

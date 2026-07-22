@@ -61,10 +61,7 @@ scoring:
     visible_drainage_feature_presence: 0.25
     kerb_ramp_or_flush_transition_presence: 0.125
     tactile_paving_presence: 0.125
-  final_visual_weight: 0.80
-  final_streetlight_weight: 0.20
-  open_visual_weight: 0.70
-  open_streetlight_weight: 0.30
+  # The final score variants are fixed in scoring_core.py to match the dissertation.
 
 analysis:
   outcome: PSSI_s

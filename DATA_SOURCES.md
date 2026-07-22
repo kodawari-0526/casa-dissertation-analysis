@@ -1,6 +1,6 @@
 # Data sources
 
-The study covers Hackney, Southwark and Richmond upon Thames. It uses 6,228 cleaned street segments, 22,565 sample points and 90,260 street-view images. The links below point to the original providers so that the data can be obtained independently.
+The study covers Hackney, Southwark and Richmond upon Thames. It uses 6,228 cleaned street segments, 22,565 sample points and 90,260 directional image records. The links below point to the original providers so that the data can be obtained independently.
 
 ## Street network and image audit
 

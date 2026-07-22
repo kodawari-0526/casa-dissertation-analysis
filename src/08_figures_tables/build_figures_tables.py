@@ -308,6 +308,8 @@ def main() -> None:
             coefficients = pd.concat([coefficients, pd.read_csv(lsoa_coefficients)], ignore_index=True)
         coefficient_figure(coefficients, figures)
     excel_workbook(csv_files, tables / "manuscript_tables.xlsx")
+    # The dissertation's validation montage is the one figure that cannot be
+    # rebuilt publicly because it contains licensed Street View images.
     write_json(
         {
             "figure_files": len(list(figures.glob("*"))),

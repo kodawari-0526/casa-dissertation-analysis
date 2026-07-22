@@ -47,6 +47,8 @@ def read_any(path: Path) -> pd.DataFrame | gpd.GeoDataFrame:
 
 
 def coordinate_columns(frame: pd.DataFrame) -> tuple[str, str, str]:
+    # The three council spreadsheets use different coordinate headings, and
+    # some provide longitude/latitude while others use British National Grid.
     lookup = {str(column).strip().lower().replace(" ", "_"): column for column in frame.columns}
     pairs = [
         (("longitude", "lon", "lng", "long"), ("latitude", "lat"), "EPSG:4326"),
@@ -95,6 +97,8 @@ def load_streetlights(specs: dict[str, str], crs: str) -> tuple[gpd.GeoDataFrame
 
 def streetlight_metrics(segments: gpd.GeoDataFrame, lamps: gpd.GeoDataFrame, maximum_distance: float) -> tuple[pd.DataFrame, dict[str, Any]]:
     assignments = []
+    # Restrict nearest matches to the same borough so that points close to an
+    # administrative boundary cannot jump into a different council inventory.
     for borough, borough_segments in segments.groupby("borough"):
         borough_lamps = lamps.loc[lamps["borough"].eq(borough)]
         if borough_lamps.empty:
@@ -119,6 +123,8 @@ def streetlight_metrics(segments: gpd.GeoDataFrame, lamps: gpd.GeoDataFrame, max
     rows = []
     for row in segments[["segment_id", "borough", "segment_length_m"]].itertuples(index=False):
         values = sorted(positions.get(row.segment_id, []))
+        # Segment ends are included because an unlit end section is still part
+        # of the largest spacing gap experienced along the segment.
         breaks = [0.0, *values, float(row.segment_length_m)]
         maximum_gap = max(np.diff(breaks)) if len(breaks) > 1 else float(row.segment_length_m)
         count = len(values)

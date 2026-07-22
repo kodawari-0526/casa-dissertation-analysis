@@ -120,6 +120,8 @@ def main() -> None:
         except Exception as exc:
             record = {"image_id": image_id, "status": "failed", "attempts": int(audit_cfg["retries"]), "error_type": type(exc).__name__}
         rows.append(record)
+        # Rewrite the checkpoint after every image. The production run was long
+        # enough that losing the completed records would have been costly.
         with output.open("w", encoding="utf-8") as stream:
             for item in rows:
                 stream.write(json.dumps(item, ensure_ascii=False, separators=(",", ":")) + "\n")

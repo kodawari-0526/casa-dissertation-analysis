@@ -126,6 +126,8 @@ def model_fit(run: ModelRun) -> dict[str, Any]:
 def spatial_weights(frame: gpd.GeoDataFrame, k: int) -> KNN:
     centroids = frame.geometry.centroid
     coordinates = np.column_stack([centroids.x.to_numpy(), centroids.y.to_numpy()])
+    # Eight neighbours preserve the three borough components while giving each
+    # segment a consistent local comparison set.
     weights = KNN.from_array(coordinates, k=min(k, len(frame) - 1))
     weights.transform = "R"
     return weights
@@ -155,6 +157,8 @@ def local_moran(frame: gpd.GeoDataFrame, outcome: str, k: int, permutations: int
 
 def priority_typology(frame: pd.DataFrame, outcome: str, deprivation: str) -> pd.DataFrame:
     output = frame[["segment_id", "borough", outcome, deprivation]].copy().reset_index(drop=True)
+    # Quintiles are borough-specific: the screen is intended to highlight local
+    # contrasts rather than let cross-borough level differences set the cut-offs.
     output["deprivation_q20"] = output.groupby("borough")[deprivation].transform(lambda values: values.quantile(0.20))
     output["deprivation_q80"] = output.groupby("borough")[deprivation].transform(lambda values: values.quantile(0.80))
     output["score_q20"] = output.groupby("borough")[outcome].transform(lambda values: values.quantile(0.20))

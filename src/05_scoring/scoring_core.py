@@ -136,11 +136,14 @@ def add_streetlight_scores(segments: pd.DataFrame, metrics: pd.DataFrame) -> pd.
     output = segments.drop(columns=duplicate, errors="ignore").merge(metrics, on="segment_id", how="left", validate="one_to_one")
     for column in ["lamp_count", "lamp_density_per_100m", "max_gap_m"]:
         output[column] = pd.to_numeric(output[column], errors="coerce")
+    # Lamp inventories differ sharply between councils, so the two component
+    # ranks are calculated within each borough before they are combined.
     output["density_pr"] = output.groupby("borough")["lamp_density_per_100m"].rank(method="average", pct=True)
     output["gap_pr"] = output.groupby("borough")["max_gap_m"].rank(method="average", pct=True)
     output["inverse_gap_pr"] = 1.0 - output["gap_pr"]
     output["SL_s"] = 50.0 * (output["density_pr"] + output["inverse_gap_pr"])
     output.loc[output["lamp_count"].fillna(0).eq(0), "SL_s"] = 0.0
+    # These fixed variants are the weights reported in the dissertation.
     output["PSSI_s"] = 0.80 * output["EVIS_s"] + 0.20 * output["SL_s"]
     output["PSSI_open"] = 0.70 * output["EVIS_s"] + 0.30 * output["SL_s"]
     components = ["X_s_sw", "X_s_dr", "X_s_kr", "X_s_tp"]

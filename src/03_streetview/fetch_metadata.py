@@ -101,6 +101,8 @@ def main() -> None:
     rows = completed.to_dict("records")
     session = requests.Session()
     pending = views.loc[~views["view_id"].astype(str).isin(done)]
+    # Panorama metadata depends on the point, not the requested heading. One
+    # lookup is therefore reused for the four directional views at that point.
     for _, point_views in pending.groupby("point_id", sort=False):
         view = point_views.iloc[0]
         payload, attempts = request_with_retry(

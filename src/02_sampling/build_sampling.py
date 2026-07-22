@@ -22,6 +22,8 @@ DIRECTIONS = (("forward", 0.0), ("backward", 180.0), ("left", -90.0), ("right", 
 
 def sample_distances(length: float, spacing: float) -> np.ndarray:
     count = max(1, int(math.ceil(length / spacing)))
+    # Centre the points in each interval so that they do not sit exactly on a
+    # junction or segment end.
     return (np.arange(count, dtype=float) + 0.5) * length / count
 
 

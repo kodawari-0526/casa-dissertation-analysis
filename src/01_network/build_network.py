@@ -89,6 +89,8 @@ def build_for_borough(boundary, borough: str, cfg: dict[str, Any]) -> gpd.GeoDat
     edges["segment_length_m"] = edges.geometry.length
     minimum = float(network_cfg["minimum_length_m"])
     short_limit = float(network_cfg["short_segment_threshold_m"])
+    # Most very short lines are clipping or junction slivers. Named streets,
+    # pedestrian streets and genuine dead ends are kept down to the 5 m floor.
     short_real_street = (
         edges["highway"].map(lambda value: bool(scalar_tags(value).intersection({"pedestrian", "living_street"})))
         | edges["is_dead_end"].fillna(False)
