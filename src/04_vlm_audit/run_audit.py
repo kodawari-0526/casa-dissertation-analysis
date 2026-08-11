@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit private street-view images with Gemini 2.5 Flash and validated JSON output."""
+"""Audit private street-view images with Gemini 3 Flash Preview and validated JSON output."""
 
 from __future__ import annotations
 

@@ -10,7 +10,7 @@ The completed analysis used:
 - 22,565 sample points and four requested directions per point;
 - 90,260 directional image records, of which 89,756 contributed a valid visual score;
 - Street View imagery collected in May 2026;
-- `gemini-2.5-flash` through the Gemini API for the visual audit.
+- `gemini-3-flash-preview` through the Gemini API for the visual audit.
 
 The Street View collection and audit involved paid services. I have therefore documented the requests, prompt, schema, retry logic and aggregation code without republishing the images or suggesting that a reader must pay to repeat the collection.
 
