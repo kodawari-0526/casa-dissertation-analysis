@@ -12,7 +12,7 @@ The street-view images were obtained through the Google Street View Static API a
 
 ## Gemini API
 
-The image audit used the Google AI Studio Gemini API with the model code `gemini-3-flash-preview`. Use of the service is governed by the [Gemini API terms](https://ai.google.dev/gemini-api/terms). Only prompts, documented output fields and research results may be released here; credentials and source images are excluded.
+The image audit used the Gemini API with the model code `gemini-3-flash-preview`. Use of the service is governed by the official Gemini API terms. Only prompts, documented output fields and research results may be released here; credentials and source images are excluded.
 
 ## Ordnance Survey
 

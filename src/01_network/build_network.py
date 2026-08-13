@@ -41,15 +41,28 @@ def scalar_tags(value: Any) -> set[str]:
     return {part.strip().lower() for part in str(value).replace("[", "").replace("]", "").replace("'", "").split(",")}
 
 
-def keep_edge(row: pd.Series) -> bool:
+def is_junction_link(row: pd.Series) -> bool:
+    """Identify OSM connector links rather than ordinary street frontage."""
+    return any(highway.endswith("_link") for highway in scalar_tags(row.get("highway")))
+
+
+def edge_rejection_reason(row: pd.Series) -> str | None:
     highways = scalar_tags(row.get("highway"))
-    if not highways.intersection(ALLOWED_HIGHWAYS) or highways.intersection(REJECTED_LIFECYCLE):
-        return False
+    if is_junction_link(row):
+        return "junction_link"
+    if highways.intersection(REJECTED_LIFECYCLE):
+        return "lifecycle"
+    if not highways.intersection(ALLOWED_HIGHWAYS):
+        return "highway_type"
     if scalar_tags(row.get("access")).intersection(REJECTED_ACCESS):
-        return False
+        return "restricted_access"
     if "service" in highways and scalar_tags(row.get("service")).intersection(REJECTED_SERVICE):
-        return False
-    return True
+        return "internal_service"
+    return None
+
+
+def keep_edge(row: pd.Series) -> bool:
+    return edge_rejection_reason(row) is None
 
 
 def canonical_line_key(line: LineString, precision: int = 2) -> tuple[tuple[float, float], ...]:
@@ -74,7 +87,42 @@ def graph_edges(graph) -> gpd.GeoDataFrame:
     return ox.graph_to_gdfs(graph, nodes=False, fill_edge_geometry=True).reset_index()
 
 
-def build_for_borough(boundary, borough: str, cfg: dict[str, Any]) -> gpd.GeoDataFrame:
+def remove_linear_overlaps(edges: gpd.GeoDataFrame, threshold_m: float) -> tuple[gpd.GeoDataFrame, dict[str, Any]]:
+    """Keep one deterministic representative where lines overlap beyond the threshold.
+
+    Exact crossings have zero linear intersection length and are retained. For a
+    duplicated or partly duplicated pair, the longer line is kept; ties are
+    resolved by the canonical geometry key.
+    """
+    if edges.empty:
+        return edges.copy(), {"removed": 0, "maximum_overlap_m": 0.0}
+    work = edges.reset_index(drop=True).copy()
+    work["_geometry_key"] = work.geometry.map(canonical_line_key)
+    priority = sorted(
+        work.index,
+        key=lambda index: (-float(work.at[index, "segment_length_m"]), work.at[index, "_geometry_key"]),
+    )
+    rank = {index: position for position, index in enumerate(priority)}
+    removed: set[int] = set()
+    maximum_overlap = 0.0
+    spatial_index = work.sindex
+    for index in priority:
+        if index in removed:
+            continue
+        geometry = work.at[index, "geometry"]
+        for candidate in spatial_index.query(geometry, predicate="intersects"):
+            candidate = int(candidate)
+            if candidate == index or candidate in removed or rank[candidate] <= rank[index]:
+                continue
+            overlap_length = float(geometry.intersection(work.at[candidate, "geometry"]).length)
+            if overlap_length > threshold_m:
+                removed.add(candidate)
+                maximum_overlap = max(maximum_overlap, overlap_length)
+    output = work.drop(index=list(removed)).drop(columns="_geometry_key").reset_index(drop=True)
+    return output, {"removed": len(removed), "maximum_overlap_m": maximum_overlap}
+
+
+def build_for_borough(boundary, borough: str, cfg: dict[str, Any]) -> tuple[gpd.GeoDataFrame, dict[str, Any]]:
     crs = cfg["project"]["crs"]
     network_cfg = cfg["network"]
     query_polygon = gpd.GeoSeries([boundary], crs=crs).buffer(network_cfg["query_buffer_m"]).to_crs(4326).iloc[0]
@@ -83,7 +131,9 @@ def build_for_borough(boundary, borough: str, cfg: dict[str, Any]) -> gpd.GeoDat
     degree = dict(graph.degree())
     edges = graph_edges(graph).to_crs(crs)
     edges["is_dead_end"] = edges.apply(lambda row: degree.get(row["u"], 0) == 1 or degree.get(row["v"], 0) == 1, axis=1)
-    edges = edges[edges.apply(keep_edge, axis=1)].copy()
+    rejection_reasons = edges.apply(edge_rejection_reason, axis=1)
+    rejection_counts = rejection_reasons.dropna().value_counts().astype(int).to_dict()
+    edges = edges[rejection_reasons.isna()].copy()
     edges = gpd.clip(edges, gpd.GeoSeries([boundary], crs=crs)).explode(index_parts=False, ignore_index=True)
     edges = edges[edges.geometry.geom_type.eq("LineString") & ~edges.geometry.is_empty].copy()
     edges["segment_length_m"] = edges.geometry.length
@@ -96,9 +146,15 @@ def build_for_borough(boundary, borough: str, cfg: dict[str, Any]) -> gpd.GeoDat
         | edges["is_dead_end"].fillna(False)
         | edges.get("name", pd.Series(index=edges.index, dtype=object)).notna()
     )
-    edges = edges[(edges["segment_length_m"] >= short_limit) | ((edges["segment_length_m"] >= minimum) & short_real_street)].copy()
+    keep_length = (edges["segment_length_m"] >= short_limit) | ((edges["segment_length_m"] >= minimum) & short_real_street)
+    micro_fragments_removed = int((~keep_length).sum())
+    boundary_slivers_removed = int(((~keep_length) & edges.geometry.distance(boundary.boundary).le(1e-7)).sum())
+    edges = edges[keep_length].copy()
     edges["_geometry_key"] = edges.geometry.map(canonical_line_key)
+    before_exact_duplicates = len(edges)
     edges = edges.sort_values("_geometry_key").drop_duplicates("_geometry_key").reset_index(drop=True).copy()
+    exact_duplicates_removed = before_exact_duplicates - len(edges)
+    edges, overlap_qa = remove_linear_overlaps(edges, float(network_cfg["overlap_threshold_m"]))
     edges["borough"] = borough
     prefix = borough.replace(" ", "_").upper()
     edges["segment_id"] = [f"{prefix}_SEG{index:05d}" for index in range(len(edges))]
@@ -118,7 +174,17 @@ def build_for_borough(boundary, borough: str, cfg: dict[str, Any]) -> gpd.GeoDat
     for column in columns:
         if column not in edges:
             edges[column] = None
-    return edges[columns]
+    qa = {
+        "filter_rejections": rejection_counts,
+        "junction_links_removed": int(rejection_counts.get("junction_link", 0)),
+        "micro_fragments_removed": micro_fragments_removed,
+        "boundary_slivers_removed": boundary_slivers_removed,
+        "exact_duplicate_geometries_removed": exact_duplicates_removed,
+        "overlap_threshold_m": float(network_cfg["overlap_threshold_m"]),
+        "overlap_geometries_removed": int(overlap_qa["removed"]),
+        "maximum_removed_overlap_m": float(overlap_qa["maximum_overlap_m"]),
+    }
+    return edges[columns], qa
 
 
 def parse_args() -> argparse.Namespace:
@@ -140,12 +206,15 @@ def main() -> None:
     require_columns(boundaries, [borough_field, "geometry"], "borough boundaries")
     boundaries[borough_field] = boundaries[borough_field].astype(str).str.upper().str.replace(" ", "_", regex=False)
     frames = []
+    cleaning_qa = {}
     for borough in cfg["project"]["boroughs"]:
         selected = boundaries.loc[boundaries[borough_field].eq(borough), "geometry"]
         if selected.empty:
             raise ValueError(f"No boundary found for {borough}")
         boundary = selected.union_all() if hasattr(selected, "union_all") else selected.unary_union
-        frames.append(build_for_borough(boundary, borough, cfg))
+        borough_segments, borough_cleaning_qa = build_for_borough(boundary, borough, cfg)
+        frames.append(borough_segments)
+        cleaning_qa[borough] = borough_cleaning_qa
     segments = gpd.GeoDataFrame(pd.concat(frames, ignore_index=True), crs=cfg["project"]["crs"])
     if segments["segment_id"].duplicated().any():
         raise RuntimeError("Duplicate segment IDs remain after network cleaning")
@@ -167,6 +236,7 @@ def main() -> None:
             "count": count_qa,
             "by_borough": borough_counts,
             "by_borough_checks": borough_qa,
+            "cleaning_by_borough": cleaning_qa,
             "minimum_length_m": float(segments.segment_length_m.min()),
             "maximum_length_m": float(segments.segment_length_m.max()),
             "crs": str(segments.crs),
