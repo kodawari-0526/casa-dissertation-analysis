@@ -47,7 +47,14 @@ def normalize_na(payload: dict[str, Any], image_id: str) -> dict[str, Any]:
     return payload
 
 
-def audit_one(client: genai.Client, model: str, image_id: str, image_path: Path, retries: int) -> tuple[dict[str, Any], int]:
+def audit_one(
+    client: genai.Client,
+    model: str,
+    image_id: str,
+    image_path: Path,
+    retries: int,
+    temperature: float,
+) -> tuple[dict[str, Any], int]:
     mime_type = mimetypes.guess_type(image_path.name)[0] or "image/jpeg"
     image_bytes = image_path.read_bytes()
     last_error: Exception | None = None
@@ -60,6 +67,7 @@ def audit_one(client: genai.Client, model: str, image_id: str, image_path: Path,
                     types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
                 ],
                 config=types.GenerateContentConfig(
+                    temperature=temperature,
                     response_mime_type="application/json",
                     response_json_schema=SCHEMA,
                 ),
@@ -115,6 +123,7 @@ def main() -> None:
                 image_id,
                 project_path(row.image_path),
                 int(audit_cfg["retries"]),
+                float(audit_cfg["temperature"]),
             )
             record = {"image_id": image_id, "status": "success", "attempts": attempts, "audit": payload}
         except Exception as exc:
@@ -128,6 +137,7 @@ def main() -> None:
     write_json(
         {
             "model": str(audit_cfg["model"]),
+            "temperature": float(audit_cfg["temperature"]),
             "rows": len(rows),
             "success": sum(row.get("status") == "success" for row in rows),
             "failed": sum(row.get("status") == "failed" for row in rows),

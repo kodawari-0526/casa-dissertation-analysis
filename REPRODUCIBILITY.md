@@ -10,7 +10,7 @@ The completed analysis used:
 - 22,565 sample points and four requested directions per point;
 - 90,260 directional image records, of which 89,756 contributed a valid visual score;
 - Street View imagery collected in May 2026;
-- `gemini-3-flash-preview` through the Gemini API for the visual audit.
+- `gemini-3-flash-preview` through the Gemini API for the visual audit, with temperature fixed at 0.
 
 The Street View collection and audit involved paid services. I have therefore documented the requests, prompt, schema, retry logic and aggregation code without republishing the images or suggesting that a reader must pay to repeat the collection.
 
@@ -26,7 +26,7 @@ The Street View and Gemini credentials are read from `GOOGLE_MAPS_API_KEY` and `
 |---|---|
 | 01 | cleaned segment GeoPackage and network QA counts |
 | 02 | sample-point GeoPackage and four-view CSV |
-| 03 | panorama metadata and a request manifest without an API key |
+| 03 | panorama metadata, private images and a key-free private image manifest |
 | 04 | schema-checked audit JSONL |
 | 05 | image, point and segment visual scores |
 | 06 | analysis-ready segment GeoPackage and CSV |

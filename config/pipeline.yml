@@ -13,6 +13,7 @@ paths:
   view_manifest: data/interim/02_sampling/views.csv
   streetview_metadata: data/restricted/03_streetview/metadata.csv
   streetview_requests: data/restricted/03_streetview/request_manifest.csv
+  streetview_images: data/restricted/03_streetview/images
   private_image_manifest: data/restricted/03_streetview/private_images.csv
   audit_jsonl: data/restricted/04_vlm_audit/audits.jsonl
   image_scores: data/interim/05_scoring/image_scores.csv
@@ -28,6 +29,7 @@ network:
   query_buffer_m: 100
   minimum_length_m: 5
   short_segment_threshold_m: 30
+  overlap_threshold_m: 0.5
   expected_segments: 6228
   expected_by_borough:
     HACKNEY: 1601
@@ -49,10 +51,12 @@ streetview:
   fov: 90
   pitch: 0
   retries: 5
+  download_images: true
 
 vlm_audit:
   api_key_env: GEMINI_API_KEY
   model: gemini-3-flash-preview
+  temperature: 0
   retries: 5
 
 scoring:

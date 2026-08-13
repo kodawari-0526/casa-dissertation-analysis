@@ -12,18 +12,18 @@ The numbered folders follow the order in which I did the work:
 
 1. `src/01_network/` — download and clean the OSM street network;
 2. `src/02_sampling/` — place roughly 50 m sample points and calculate four view headings;
-3. `src/03_streetview/` — collect panorama metadata and prepare image request parameters;
+3. `src/03_streetview/` — collect panorama metadata and private directional images;
 4. `src/04_vlm_audit/` — run the structured visual audit;
 5. `src/05_scoring/` — aggregate image results to points and segments;
 6. `src/06_covariates/` — join street lights and the other spatial covariates;
 7. `src/07_analysis/` — produce borough summaries, equity screens and statistical models;
 8. `src/08_figures_tables/` — rebuild the result tables and maps.
 
-The default paths and the main production settings are in `config/pipeline.yml`. Source links are recorded in [DATA_SOURCES.md](DATA_SOURCES.md).
+The default paths and the settings used for the dissertation are in `config/pipeline.yml`. Source links are recorded in [DATA_SOURCES.md](DATA_SOURCES.md).
 
 ## Running the code
 
-The scripts are provided so that the method can be inspected and adapted. A complete rerun requires the original public downloads, separately obtained council files and valid access to the two APIs. It is not necessary to repeat the paid image collection simply to read or assess the dissertation.
+I have provided the scripts so that the dissertation method can be inspected and adapted. A complete rerun requires the original public downloads, separately obtained council files and valid access to the two APIs. It is not necessary to repeat the paid image collection simply to read or assess the dissertation.
 
 For a fresh environment:
 

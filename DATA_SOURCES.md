@@ -21,7 +21,7 @@ The images were kept in private cloud storage for processing and were sent direc
 
 ### Vision-language model
 
-The image audit used the Gemini API through Google AI Studio. The model code was [`gemini-3-flash-preview`](https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview). Image-level responses were aggregated to sample points and then to street segments.
+The image audit used the Gemini API with the model code `gemini-3-flash-preview`. Image-level responses were aggregated to sample points and then to street segments.
 
 The repository may include prompts, output fields and segment-level results, but it does not include the source images, private storage locations or API credentials.
 

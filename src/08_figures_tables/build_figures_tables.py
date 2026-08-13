@@ -308,14 +308,10 @@ def main() -> None:
             coefficients = pd.concat([coefficients, pd.read_csv(lsoa_coefficients)], ignore_index=True)
         coefficient_figure(coefficients, figures)
     excel_workbook(csv_files, tables / "manuscript_tables.xlsx")
-    # The dissertation's validation montage is the one figure that cannot be
-    # rebuilt publicly because it contains licensed Street View images.
     write_json(
         {
             "figure_files": len(list(figures.glob("*"))),
             "csv_tables": len(csv_files),
-            "streetview_validation_montage_generated": False,
-            "validation_note": "The image-based disagreement montage is excluded because the underlying Street View images are not redistributable.",
         },
         output / "build_summary.json",
     )
