@@ -28,10 +28,10 @@ MAX_SCORE = {
     "tactile_paving_presence": 1.0,
 }
 DEFAULT_VISUAL_WEIGHTS = {
-    "sidewalk_serviceability_coarse": 0.50,
+    "sidewalk_serviceability_coarse": 0.40,
     "visible_drainage_feature_presence": 0.25,
-    "kerb_ramp_or_flush_transition_presence": 0.125,
-    "tactile_paving_presence": 0.125,
+    "kerb_ramp_or_flush_transition_presence": 0.20,
+    "tactile_paving_presence": 0.15,
 }
 
 

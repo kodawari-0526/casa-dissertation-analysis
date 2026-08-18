@@ -37,7 +37,7 @@ The network and sampling scripts have an optional `--strict-count` flag. I used 
 
 ## Main score definitions
 
-`EVIS_s` combines sidewalk, drainage, kerb-transition and tactile-paving evidence with weights 0.50, 0.25, 0.125 and 0.125. A target marked NA is removed from that image's denominator; confidence is carried separately as evidence mass.
+`EVIS_s` combines sidewalk, drainage, kerb-transition and tactile-paving evidence with weights 0.40, 0.25, 0.20 and 0.15. A target marked NA is removed from that image's denominator; confidence is carried separately as evidence mass.
 
 `SL_s` is the mean of the within-borough lamp-density percentile and inverse maximum-gap percentile. A segment with no linked lamp receives zero. This is an asset and spacing proxy, not a measurement of illumination or whether a lamp was working.
 

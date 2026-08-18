@@ -8,7 +8,7 @@ import pandas as pd
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src/05_scoring"))
-from scoring_core import add_streetlight_scores, flatten_audit
+from scoring_core import DEFAULT_VISUAL_WEIGHTS, add_streetlight_scores, flatten_audit
 
 
 def audit_item(applicable: bool, score: int | None, confidence: float = 1.0) -> dict:
@@ -16,6 +16,13 @@ def audit_item(applicable: bool, score: int | None, confidence: float = 1.0) -> 
 
 
 def test_visual_weights_and_na_reweighting() -> None:
+    assert DEFAULT_VISUAL_WEIGHTS == {
+        "sidewalk_serviceability_coarse": 0.40,
+        "visible_drainage_feature_presence": 0.25,
+        "kerb_ramp_or_flush_transition_presence": 0.20,
+        "tactile_paving_presence": 0.15,
+    }
+
     record = {
         "image_id": "view-1",
         "status": "success",
@@ -27,7 +34,7 @@ def test_visual_weights_and_na_reweighting() -> None:
         },
     }
     row = flatten_audit(record)
-    assert np.isclose(row["EVIS_i"], 100.0 * 0.50 / 0.75)
+    assert np.isclose(row["EVIS_i"], 100.0 * 0.40 / 0.65)
     assert np.isclose(row["RVSI_i"], 70.0)
     assert row["evidence_tier"] == "A"
 

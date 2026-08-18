@@ -61,10 +61,10 @@ vlm_audit:
 
 scoring:
   visual_weights:
-    sidewalk_serviceability_coarse: 0.50
+    sidewalk_serviceability_coarse: 0.40
     visible_drainage_feature_presence: 0.25
-    kerb_ramp_or_flush_transition_presence: 0.125
-    tactile_paving_presence: 0.125
+    kerb_ramp_or_flush_transition_presence: 0.20
+    tactile_paving_presence: 0.15
   # The final score variants are fixed in scoring_core.py to match the dissertation.
 
 analysis:

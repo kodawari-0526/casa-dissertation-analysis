@@ -218,7 +218,7 @@ def methods_tables(directory: Path) -> list[Path]:
     )
     scoring = pd.DataFrame(
         [
-            ["EVIS_s", "0.50 sidewalk + 0.25 drainage + 0.125 kerb + 0.125 tactile", "Valid-target and evidence-mass weighting"],
+            ["EVIS_s", "0.40 sidewalk + 0.25 drainage + 0.20 kerb + 0.15 tactile", "Valid-target and evidence-mass weighting"],
             ["RVSI_s", "0.70 sidewalk + 0.30 drainage", "Robustness output"],
             ["SL_s", "0.50 density percentile + 0.50 inverse-gap percentile", "Zero for no linked lamps"],
             ["PSSI_s", "0.80 EVIS_s + 0.20 SL_s", "Primary segment criterion"],
